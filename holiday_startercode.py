@@ -1,6 +1,8 @@
 import datetime
+from datetime import datetime, date
 import json
 from bs4 import BeautifulSoup
+from regex import E
 import requests
 from dataclasses import dataclass
 
@@ -115,7 +117,7 @@ class HolidayList:
         with open(filelocation, "r") as f:
             holidays = json.load(f)
             for i in holidays["holidays"]:
-                date = datetime.datetime.strptime(i["date"],"%Y-%m-%d")
+                date = datetime.strptime(i["date"],"%Y-%m-%d")
                 if self.findHoliday(i["name"], date) != False:
                     newHoliday = Holiday(i["name"], date)
                     self.__innerHolidays.append(newHoliday)
@@ -146,7 +148,7 @@ class HolidayList:
                 cells = row.find_all_next('td')
                 mmdd = row.find('th',class_ = 'nw').text
                 yyyy = f"{i} {mmdd}"
-                rmmdd = datetime.datetime.strptime(yyyy,"%Y %b %d").date()
+                rmmdd = datetime.strptime(yyyy,"%Y %b %d").date()
                 hname = cells[1].text
                 
                 h = self.findHoliday(hname, rmmdd)
@@ -163,8 +165,15 @@ class HolidayList:
         # Return the total number of holidays in innerHolidays
     
     def filter_holidays_by_week(self, year, week_number):
+        holidays = []
+        if(not(isinstance(week_number,int))):
+            raise ValueError()
+        
+        if(not(isinstance(year,int))):
+            raise ValueError()
+
         holidays = list(filter(lambda holiday: holiday.date.isocalendar()[1] == week_number
-            and holiday.date.year == year, self.__innerholidays))
+                        and holiday.date.isocalendar()[0] == year, self.__innerHolidays))
 
         return holidays
         # Use a Lambda function to filter by week number and save this as holidays, use the filter on innerHolidays
@@ -173,10 +182,14 @@ class HolidayList:
         # return your holidays
 
     def displayHolidaysInWeek(self, HolidayList):
-        hWeek = self.filter_holidays_by_week(HolidayList[0], HolidayList[1])
-
-        for h in hWeek:
-            print(h)
+        if(len(HolidayList) == 0):
+            print("There are no holidays in this week.")
+        else: 
+            year = HolidayList[0].date.isocalendar()[0]
+            week = HolidayList[0].date.isocalendar()[1]
+            print(f"These are the holidays for {year} week # {week}: ")
+            for holiday in HolidayList:
+                print(holiday)
         # Use your filter_holidays_by_week to get list of holidays within a week as a parameter
         # Output formated holidays in the week. 
         # * Remember to use the holiday __str__ method.
@@ -188,11 +201,10 @@ class HolidayList:
         # Format weather information and return weather string.
 
     def viewCurrentWeek(self):
-        year = datetime.now().year
         week = datetime.now().isocalendar()[1]
-        currentweek = [week, year]
-
-        return currentweek
+        year = datetime.now().isocalendar[0]
+        
+        self.displayHolidaysInWeek(self.filter_holidays_by_week(year,week))
         # Use the Datetime Module to look up current week and year
         # Use your filter_holidays_by_week function to get the list of holidays 
         # for the current week/year
@@ -214,7 +226,7 @@ def main():
     usercontinue = True
     saved = True
 
-    while True:
+    while usercontinue:
         print("Holiday Menu")
         print("=============================================")
         print("1. Add a holiday")
@@ -234,60 +246,52 @@ def main():
             print("========================")
             while saved: 
                 save = str(input("Are you sure you want to save your changes? [y/n]: "))
-            
             if save == 'y':
                 print("Success:\n Your changes have been saved.")
                 HolidayList.save_to_json(importloc)
                 saved = False
+                break
             elif save == 'n':
                 print("Canceled:\n Holiday list file save canceled.")
                 saved = False
             else:
                 print("Invalid entry!")
         elif choice == 4:
-            yearCheck = False
-            while yearCheck == False:
-                try:
-                    yr = int(input("Which Year?: "))
-                    yearCheck = True
-                except:
-                    print("Error:\n Please enter an integer for year")
-            weekCheck = False
-            while weekCheck == False:
-                wk = input("Which Week?: #[1-52, Leave blank for the current week]: ")
-                if wk == int(wk):
-                    wk = HolidayList.viewCurrentWeek()
-                    weekCheck = True
+            print("View Holidays")
+            print("===================")
+            year = input("Which year?: ")
+            week= input("Which week? #1-52, leave blank for current week]: ")
+            if week != "":
+                if(int(week)<= 53 and int(week) >= 1):
+                    week = int(week)
+                    year = int(year)
+                    HolidayList.displayHolidaysInWeek(HolidayList.filter_holidays_by_week(year,week))
+                    break
                 else:
-                    print("\nError: please enter an integer for week!\n")
-            
-            x = HolidayList.filter_holidays_by_week(yr, wk)
-            if len(x) == 0:
-                print(f"\nThere are no Holidays for {yr} Week #{wk}.")
+                    print("Input not in range. Try again.")
             else:
-                print(f"\nThese are the Holidays for {yr} Week #{wk}:")
-                HolidayList.displayHolidaysInWeek(x)
+                week = datetime.now().isocalendar()[1]
+                year = datetime.now().isocalendar()[0]
+                HolidayList.displayHolidaysInWeek(HolidayList.filter_holidays_by_week(year,week))
+                print(week)
+                break
         elif choice == 5:
             print("Exit")
             print("=======")
-            exit = str(input("Are you sure you want to exit? [y/n]: ")).lower()
-            
-            if exit == "y":
-                print("Goodbye!")
-                usercontinue = False
-                saved = False
+            if saved == True:
+                exit = input("Are you sure you want to exit? [Y/N]: ")
+            if exit == 'y':
+                print('Goodbye!')
+                break
             elif exit == 'n':
-                print("Returning to the main menu")
-            elif saved == True:
-                doubleexit = str(input("Are you sure you want to exit?\nYour changes will be lost.\n[y/n]:"))
+                continue
+            elif saved == False:
+                doubleexit = input("Are you sure you want to exit? Your changes will be lost! [Y/N]: ")
             if doubleexit == 'y':
                 print("Goodbye!")
-                usercontinue = False
+                break
             elif doubleexit == 'n':
-                print("Returning to the main menu")
-            else:
-                print("Error:\n That is not a valid choice.")
-
+                continue
 
 
 
@@ -308,7 +312,7 @@ def main():
 
 
 if __name__ == "__main__":
-    main();
+    main(); 
 
 
 # Additional Hints:
