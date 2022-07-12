@@ -1,0 +1,7 @@
+Created a text-based application to track holidays.
+
+The holidays.json file is the main file with some holidays and more can be added.
+
+The holiday_class_modeling is the file of how the holiday class is designed and what it needs to do. 
+
+The holiday_startercode is the code needed to run the program. 
