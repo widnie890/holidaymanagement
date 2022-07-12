@@ -1,0 +1,9 @@
+Holiday
+---------------
++name: string
++date : date
+
+---------------
++addHoliday()
++findHoliday()
++removeHoliday()
