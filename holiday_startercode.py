@@ -70,7 +70,7 @@ class HolidayList:
 
         _holiday = str(input("Holiday name: "))
         _holidaydate = input("When is the holiday? Input in yyyy-mm-dd: ")
-        date = datetime.datetime.strptime(_holidaydate,"%Y-%m-%d").date()
+        date = datetime.strptime(_holidaydate,"%Y-%m-%d").date()
         holidayObj = Holiday(_holiday,date)
 
         if (type(holidayObj)== Holiday):
@@ -266,7 +266,6 @@ def main():
                     week = int(week)
                     year = int(year)
                     HolidayList.displayHolidaysInWeek(HolidayList.filter_holidays_by_week(year,week))
-                    break
                 else:
                     print("Input not in range. Try again.")
             else:
